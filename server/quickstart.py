@@ -9,8 +9,8 @@ import time
 SCOPES = ['https://www.googleapis.com/auth/tasks.readonly']
 
 def main():
-    """Shows basic usage of the Tasks API.
-    Prints the title and ID of the first 10 task lists.
+    """
+    Tasks API
     """
     creds = None
     # The file token.json stores the user's access and refresh tokens, and is
