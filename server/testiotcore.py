@@ -80,9 +80,13 @@ def main():
     results = service.tasklists().list(maxResults=10).execute()
     items = results.get('items', [])
 
+    previous_task_count = 0
+    current_task_count = 0
+
     while True:
+        previous_task_count = current_task_count
+
         tasks = []
-        totaltasks = 0
         if not items:
             print('No task lists found.')
         else:
@@ -91,22 +95,22 @@ def main():
                 lists = service.tasks().list(tasklist=item['id'], showCompleted=False).execute().get('items')
 
                 if lists is not None:
-                    totaltasks += len(lists)
+                    current_task_count += len(lists)
                     tasks.append(lists)
                 #print(u'{0} ({1})'.format(item['title'], item['id']))
-        print('total tasks' , totaltasks)
+        print('total tasks' , current_task_count)
+        
+        #if current task count has decreased
+        if(current_task_count < previous_task_count):
+            print('Begin Publish')
+            for i in range(0, RANGE, 15):
+            data = "{} [{}]".format(MESSAGE, i+1)
+            message = {"h" : i, "s": 255, 'v': 255, "client": 'ec2'}
+            mqtt_connection.publish(topic=TOPIC, payload=json.dumps(message), qos=mqtt.QoS.AT_LEAST_ONCE)
+            print("Published: '" + json.dumps(message) + "' to the topic: " + "'lamp/state'")
+        
         time.sleep(1)
-        
-        
-        
-        
-        #print('Begin Publish')
-        #for i in range(0, RANGE, 15):
-        #    data = "{} [{}]".format(MESSAGE, i+1)
-        #    message = {"h" : i, "s": 255, 'v': 255, "client": 'ec2'}
-        #    mqtt_connection.publish(topic=TOPIC, payload=json.dumps(message), qos=mqtt.QoS.AT_LEAST_ONCE)
-        #    print("Published: '" + json.dumps(message) + "' to the topic: " + "'lamp/state'")
-        #    t.sleep(0.1)
+
 
     print('Ending')
     disconnect_future = mqtt_connection.disconnect()
