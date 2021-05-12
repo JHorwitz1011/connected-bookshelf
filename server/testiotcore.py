@@ -104,10 +104,9 @@ def main():
         if(current_task_count < previous_task_count):
             print('Begin Publish')
             for i in range(0, RANGE, 15):
-            data = "{} [{}]".format(MESSAGE, i+1)
-            message = {"h" : i, "s": 255, 'v': 255, "client": 'ec2'}
-            mqtt_connection.publish(topic=TOPIC, payload=json.dumps(message), qos=mqtt.QoS.AT_LEAST_ONCE)
-            print("Published: '" + json.dumps(message) + "' to the topic: " + "'lamp/state'")
+                message = {"h" : i, "s": 255, 'v': 255, "client": 'ec2'}
+                mqtt_connection.publish(topic=TOPIC, payload=json.dumps(message), qos=mqtt.QoS.AT_LEAST_ONCE)
+                print("Published: '" + json.dumps(message) + "' to the topic: " + "'lamp/state'")
         
         time.sleep(1)
 
