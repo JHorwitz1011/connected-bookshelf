@@ -14,7 +14,7 @@ WiFiClientSecure net = WiFiClientSecure();
 MQTTClient client = MQTTClient(256);
 
 //small variables for messages
-uint8_t msgBrightness;
+uint8_t msgValue;
 uint8_t msgHue;
 uint8_t msgSat;
 
@@ -75,7 +75,7 @@ void connectAWS()
   //initialize message variables
   msgHue = 0;
   msgSat = 0;
-  msgBrightness = 0;
+  msgValue = 0;
 
   Serial.println("AWS IoT Connected!");
 }
@@ -86,7 +86,7 @@ void publishMessage()
   doc["client"] = "trans";
   doc["h"] = msgHue;
   doc["s"] = msgSat;
-  doc["b"] = msgBrightness;
+  doc["v"] = msgValue;
   char jsonBuffer[512];
   serializeJson(doc, jsonBuffer); // print to client
 
@@ -115,7 +115,7 @@ void configurePins() {
   //message setters
   msgHue = 0;
   msgSat = 0;
-  msgBrightness = 15;
+  msgValue = 50;
  
 
 }
@@ -124,6 +124,7 @@ void setup() {
   connectAWS();
   delay(100);
   configurePins();
+  FastLED.setBrightness(50);
 
 }
 
@@ -161,23 +162,23 @@ void updateHSB() {
  if(input && !prevInput) {
     Serial.println("input pressed");
   }
-  if(brightUp && !prevBrightUp && msgBrightness < 240) {
+  if(brightUp && !prevBrightUp && msgValue < 240) {
     //handles initialization
-    if(msgBrightness == 0) {
-      msgBrightness = 15;  
+    if(msgValue == 0) {
+      msgValue = 15;  
     }
     else {
-      msgBrightness += 16;  
+      msgValue += 16;  
     }
     Serial.println("bup pressed");  
   }
 
-  if(brightDown && !prevBrightDown && msgBrightness >= 15) {
-    if(msgBrightness == 15) {
-      msgBrightness = 0;  
+  if(brightDown && !prevBrightDown && msgValue >= 15) {
+    if(msgValue == 15) {
+      msgValue = 0;  
     }
     else {
-      msgBrightness -= 16;
+      msgValue -= 16;
     }
     Serial.println("bdown pressed");  
   }
@@ -188,8 +189,7 @@ void updateHSB() {
 }
 
 void updateLED() {
-  leds[1] = CHSV(msgHue, msgSat, 255);
-  FastLED.setBrightness(msgBrightness); 
+  leds[1] = CHSV(msgHue, msgSat, msgValue);
   FastLED.show();
 }
 
@@ -198,8 +198,8 @@ void printHSB() {
   Serial.println(msgHue);
   Serial.print("s: ");
   Serial.println(msgSat);
-  Serial.print("b: ");
-  Serial.println(msgBrightness);
+  Serial.print("v: ");
+  Serial.println(msgValue);
 }
 void loop() {
   //update inputs

@@ -1,4 +1,4 @@
-#include "secrets.h"
+ #include "secrets.h"
 #include <WiFiClientSecure.h>
 #include <MQTTClient.h>
 #include <ArduinoJson.h>
@@ -6,8 +6,8 @@
 #include <FastLED.h>
 
 //MQTT Setup
-#define AWS_IOT_SUBSCRIBE_TOPIC "lamp/state"
-
+#define AWS_IOT_STATE_TOPIC "lamp/state"
+#define AWS_IOT_ANIMATION_TOPIC "lamp/animations"
 WiFiClientSecure net = WiFiClientSecure();
 MQTTClient client = MQTTClient(256);
 
@@ -16,8 +16,22 @@ MQTTClient client = MQTTClient(256);
 #define DATA_PIN 13
 
 CRGB leds[NUM_LEDS];
-bool leds_on;
 
+//animation setup
+enum animation {
+  none,
+  cubic,
+  square,
+  triangle,
+  sine
+};
+animation currentAnimation;
+uint8_t animationSpeed;
+uint8_t animationTime;
+uint8_t brightness;
+bool stripOn;
+
+//connects esp32 to wifi and aws
 void connectAWS()
 {
   WiFi.mode(WIFI_STA);
@@ -54,67 +68,73 @@ void connectAWS()
   }
 
   // Subscribe to a topic
-  client.subscribe(AWS_IOT_SUBSCRIBE_TOPIC);
+  client.subscribe(AWS_IOT_STATE_TOPIC);
+  client.subscribe(AWS_IOT_ANIMATION_TOPIC);
 
   //Serial.println("AWS IoT Connected!");
 }
 
+void addLED(uint8_t h, uint8_t s, uint8_t v) {
+  for(int i = NUM_LEDS - 1; i > 0; i--) {
+    leds[i] = leds[i - 1];    
+  }
+  leds[0] = CHSV(h, s, v);
+  FastLED.show();
+}
+
+void setAnimation(animation type, uint8_t bright, uint8_t aniSpeed) {
+  currentAnimation = type;
+  brightness = bright;
+  animationSpeed = aniSpeed;
+}
 
 void messageHandler(String &topic, String &payload) {
   Serial.println("incoming: " + topic + " - " + payload);
 
   StaticJsonDocument<200> doc;
   deserializeJson(doc, payload);
-  uint8_t hue = doc["h"];
-  uint8_t sat = doc["s"];
-  uint8_t brightness = doc["b"];
-  //Serial.print("incoming hue");
-  //Serial.println(hue);
-  //Serial.print("incoming sat");
-//  Serial.println(sat);
-//  Serial.print("incoming brightness");
-//  Serial.println(brightness);
-//  
-  //push leds back one step, flash strip
-  
-  for(int i = NUM_LEDS - 1; i > 0; i--) {
-    leds[i] = leds[i - 1];    
-    FastLED.show();
-    delay(3);
+  if(topic == "lamp/state") {
+      uint8_t hue = doc["h"];
+      uint8_t sat = doc["s"];
+      uint8_t value = doc["v"];
+      //Serial.print("incoming hue");
+      //Serial.println(hue);
+      //Serial.print("incoming sat");
+      //Serial.println(sat);
+      //Serial.print("incoming brightness");
+      //Serial.println(brightness);
+    
+      //push leds back one step, flash strip
+      if(doc["client"] == "trans") {
+        addLED(hue, sat, value);
+      }
+      else if (doc["client"] == "ec2") {
+        addLED(hue, sat, value);
+      }
   }
-  leds[0] = CHSV(hue, sat, 255);
-  FastLED.setBrightness(0);
-  FastLED.show();
-  delay(100);
-  FastLED.setBrightness(brightness);
-  FastLED.show();
-  delay(100);
-  FastLED.setBrightness(0);
-  FastLED.show();
-  delay(100);
-  FastLED.setBrightness(brightness);
-  FastLED.show();
+  else if (topic == "lamp/animations") {
+    if(doc["type"] == "none" ) {
+      setAnimation(none, doc["brightness"], doc["speed"]);  
+    }
+    else if(doc["type"] == "triangle" ) {
+      setAnimation(triangle, doc["brightness"], doc["speed"]);  
+    }
+    else if(doc["type"] == "cubic" ) {
+      setAnimation(cubic, doc["brightness"], doc["speed"]);  
+    }
+    else if(doc["type"] == "square" ) {
+      setAnimation(square, doc["brightness"], doc["speed"]);  
+    }
+    else if(doc["type"] == "sine" ) {
+      setAnimation(sine, doc["brightness"], doc["speed"]);  
+    }
+  }
 }
 
 void initializeLights() {
   FastLED.addLeds<WS2812B, DATA_PIN, GRB>(leds, NUM_LEDS);  // GRB ordering is typical
-  leds_on = false;
+  setAnimation(triangle, 255, 4);
 }
-
-void updateLights() {
-    if (leds_on) {
-      for (int i = 0; i < 1; i++) {
-          leds[i] = CRGB::Green;
-        }  
-    }
-    else {
-      for (int i = 0; i < 1; i++) {
-          leds[i] = CRGB::Black;
-      }  
-    }
-    FastLED.show();
-}
-
 
 void setup() {
   Serial.begin(9600);
@@ -122,9 +142,33 @@ void setup() {
   initializeLights();
 }
 
+void updateAnimations() {
+  animationTime += animationSpeed;
+  stripOn = true;
+
+  if (currentAnimation == triangle) {
+    uint8_t wave = triwave8(animationTime);
+    brightness = wave;    
+  }
+  else if (currentAnimation == cubic) {
+    uint8_t wave = cubicwave8(animationTime);
+    brightness = wave;    
+  }  
+  else if (currentAnimation == sine) {
+    uint8_t wave = sin8(animationTime);
+    brightness = wave;    
+  }
+  else if (currentAnimation == square) {
+    if (millis() % 100/animationSpeed != 0) {
+      stripOn = false;  
+    }
+  }
+  FastLED.setBrightness(stripOn*brightness);
+  FastLED.show();
+}
+
 void loop() {
   client.loop();
-//  updateLights();
-  //leds_on = !leds_on;
-//  Serial.println(leds_on);
+  updateAnimations();
+  delay(10);
 }
