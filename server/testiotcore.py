@@ -84,8 +84,9 @@ def main():
     current_task_count = 0
 
     while True:
-        previous_task_count = current_task_count
 
+        previous_task_count = current_task_count
+        current_task_count = 0
         tasks = []
         if not items:
             print('No task lists found.')
