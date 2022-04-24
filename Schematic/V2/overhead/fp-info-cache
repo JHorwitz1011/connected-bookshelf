@@ -1,4 +1,4 @@
-19229220701370492
+19229260605782905
 Battery
 BatteryHolder_Bulgin_BX0036_1xC
 Bulgin Battery Holder, BX0036, Battery Type C (https://www.bulgin.com/products/pub/media/bulgin/data/Battery_holders.pdf)
@@ -50720,7 +50720,7 @@ ESP32-S2-WROOM and ESP32-S2-WROOM-I(Drawn by Dave Williams | G8PUO | DitroniX)
 
 0
 63
-55
+43
 Ferrite_THT
 LairdTech_28C0236-0JW-10
 Ferrite, vertical, LairdTech 28C0236-0JW-10, https://assets.lairdtech.com/home/brandworld/files/28C0236-0JW-10.pdf, JW Miller core https://www.bourns.com/products/magnetic-products/j.w.-miller-through-hole-ferrite-beads-emi-filters
@@ -51596,27 +51596,6 @@ PTS636 SM25F SMTR LFS
 0
 2
 2
-HIVE-Crystal-Oscillator
-ABS25-32.000KHZ-T
-
-
-0
-4
-4
-HIVE-Level-Shifter
-SOP50P310X100-8N
-<b>SOT765-1</b><br>
-
-0
-8
-8
-HIVE-TVS-Diodes
-SOT143
-
-
-0
-4
-4
 HIVE-USB-Switch
 PI3USB221EZWEX
 
@@ -51631,20 +51610,41 @@ CP2102N-A02-GQFN20R
 0
 21
 21
-HIVE-linear-regulator
-MIC5528-3.3YMT-TR
-
-
-0
-7
-7
-HIVE-micro-usb
-10118193-0001LF
+HIVE-finalmicrousb
+FCI_10118193-0001LF
 
 
 0
 11
 11
+HIVE-finalmicrousb
+HIVE-lvlshift
+
+
+0
+0
+0
+HIVE-finaloscillator
+XTAL_MS3V-T1R
+
+
+0
+3
+3
+HIVE-linreg
+HIVE-lvlshift
+
+
+0
+8
+8
+HIVE-linreg
+SOT230P700X180-4N
+
+
+0
+4
+4
 Heatsink
 Heatsink_35x26mm_1xFixation3mm_Fischer-SK486-35
 Heatsink, 35mm x 26mm, 1x Fixation 3mm, Fischer SK486-35

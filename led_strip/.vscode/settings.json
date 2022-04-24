@@ -1,0 +1,15 @@
+{
+  "C_Cpp.intelliSenseEngine": "Tag Parser",
+  "files.associations": {
+    "rmt.h": "c",
+    "*.inc": "c",
+    "led_strip.h": "c"
+  },
+  "idf.portWin": "COM6",
+  "idf.adapterTargetName": "esp32s2",
+  "idf.flashType": "DFU",
+  "idf.openOcdConfigs": [
+    "interface/ftdi/esp32_devkitj_v1.cfg",
+    "target/esp32s2.cfg"
+  ]
+}
